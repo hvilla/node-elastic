@@ -1,0 +1,22 @@
+{
+  "name": "node_elastic",
+  "version": "1.0.0",
+  "description": "Practice for node elastic connection and testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "elasticsearch",
+    "node",
+    "elastic",
+    "data"
+  ],
+  "author": "HVP",
+  "license": "ISC",
+  "dependencies": {
+    "elasticsearch": "^16.5.0",
+    "express": "^4.17.1",
+    "yarn": "^1.19.1"
+  }
+}
