@@ -22,6 +22,8 @@ const extractor = async () => {
                 auxData[name]=false;
             }else if(name==='login_date'){
                 auxData[name]=moment(data[index],'YYYY-MM-DD');
+            }else{
+              auxData[name]=data[index];
             }
         });
         tempData.push(auxData);
@@ -33,12 +35,15 @@ const bulkIndex = function bulkIndex(index,type, data) {
     let bulkBody = [];
   
     data.forEach(item => {
+      //console.log(item);
       bulkBody.push({
         index: {
           _index: index,
           _type: type,
-          _id: item.id
+          _id: item._id,
+          
         }
+        
       });
   
       bulkBody.push(item);
@@ -49,7 +54,8 @@ esClient.bulk({body: bulkBody})
       let errorCount = 0;
       response.items.forEach(item => {
         if (item.index && item.index.error) {
-          console.log(++errorCount, item.index.error);
+          ++errorCount;
+          //console.log(, item.index.error);
         }
       });
       console.log(
@@ -61,22 +67,38 @@ esClient.bulk({body: bulkBody})
   };
 
 
-const insertDoc = async function(data){
-    console.log(data);
-    return await esClient.index({
-        index: fileName,
-        body: data
-    });
+const createIndex = async function(nameIndex){
+  esClient.indices.exists({index:nameIndex},(err,res,status)=>{
+    if(res){
+      console.log('Index already exists, proceding with data importing');
+    }else{
+      esClient.indices.create({index:nameIndex},(err,res,status)=>{
+        esClient.indices.putMapping({
+          index: nameIndex,
+          includeTypeName:true,
+          type: 'user',
+          body: {
+            properties: { 
+              first_name:{type:'keyword'},
+              last_name:{type:'keyword'},
+              login_date:{type:'keyword'}
+            }
+          }
+        })
+      });
+    }
+  });
 }
 
 async function main(){
     try {
         const parsedData = await extractor();
+        await createIndex(fileName);
         for (let index = 0; index < 10; index++) {
-            bulkIndex('test','med_spec', parsedData);
+            await bulkIndex(fileName,'user', parsedData);
         }
     } catch (error) {
-        //console.log(error)
+        console.log(error)
     }
 }
 
